@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <style>
+
+    </style>
+  </head>
+
+  <body>
+    <!-- UART -->
+    <form>
+      <fieldset>
+       <label>Function Debug </label>
+       <br> <br>
+       <div>
+         <label>Serial Port :&nbsp</label>
+         <select id="SerialPort">
+           <option value="">COMx</option>
+           <option value="1">COM1</option>
+           <option value="2">COM2</option>
+           <option value="3">COM3</option>
+           <option value="4">COM4</option>
+           <option value="5">COM5</option>
+           <option value="6">COM6</option>
+           <option value="7">COM7</option>
+           <option value="8">COM8</option>
+           <option value="9">COM9</option>
+         </select>
+         <button type = "button" onclick="Connect()">Connect</button>
+         <a id = "isConnected">Click to connect</a>
+       </div>
+       <div>
+         <br>
+         <button type = "button" id="start" onclick="Start()">Start Debug</button>
+         <button type = "button" id="stop" onclick="Stop()">Stop Debug</button>
+         <button type = "button" onclick="Copy()">Copy to clipboard</button>
+         <button type = "button" onclick="Save()">Save on USB Driver</button>
+         <button type = "button" id="create">Create file</button>
+          <a download = "io.txt" id="downloadlink" style="display: none">Download to USB</a>
+         <button type = "button" style="float: right;" onclick="window.location.href='/logcapture/'">To CEC Log Capture</button>
+       </div>
+      </fieldset>
+    </form>
+    
+    <!-- Debug -->
+    <form>
+      <fieldset>
+        <textarea id="section"  style="width:100%; height:100%" rows = 40 placeholder = "ex) ??"></textarea>
+      </fieldset>
+    </form>
+  </body>
+
+  <script>
+  (function () {
+var textFile = null,
+  makeTextFile = function (text) {
+    var data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+      window.URL.revokeObjectURL(textFile);
+    }
+
+    textFile = window.URL.createObjectURL(data);
+
+    return textFile;
+  };
+
+
+  var create = document.getElementById('create'),
+    textbox = document.getElementById('section');
+
+  create.addEventListener('click', function () {
+    var filename =  prompt("Please enter file name:");
+    if(filename == null || filename == "") {
+      alert("write file name");
+    }
+    else {
+      var link = document.getElementById('downloadlink');
+      link.href = makeTextFile(textbox.value);
+      link.style.display = 'inline';
+      link.innerHTML = filename + ".txt";
+      link.download = filename + ".txt";
+    }
+  }, false);
+})();
+	function Connect() {
+      //rpi
+    }
+    
+    function Start() {
+      //rpi
+      var startbtn = document.getElementById("start");
+      var stopbtn = document.getElementById("stop");
+      startbtn.style.borderStyle = 'inset';
+      stopbtn.style.borderStyle = 'outset';
+      btn_state = '21';
+    }
+    function Stop() {
+      //rpi
+      var startbtn = document.getElementById("start");
+      var stopbtn = document.getElementById("stop");
+      startbtn.style.borderStyle = 'outset';
+      stopbtn.style.borderStyle = 'inset';
+      btn_state = '22';
+    }
+    
+    function Copy() {
+       var copyText = document.getElementById("section");
+       copyText.select();
+       copyText.setSelectionRange(0, -1);
+       document.execCommand("copy");
+       alert("Complete!");
+    }
+
+    function Save() {
+      btn_state = '23';
+      var startbtn = document.getElementById("start");
+      var stopbtn = document.getElementById("stop");
+      startbtn.style.borderStyle = 'outset';
+      stopbtn.style.borderStyle = 'inset';
+    } 
+
+  var sock = new WebSocket("ws://127.0.0.1:8080");   //IP는 나중에 바꿔야함
+  var btn_state = '2'; //1 : start 2 : stop
+  sock.onmessage = function(e) {
+    console.log(e.data);
+    //document.get.ElementById('section').value = e.data.toString()
+    sock.send(btn_state);
+    if(btn_state != '2') btn_state = '2';
+  };
+  sock.onopen = function(e) {
+    console.log("open");
+  };
+  sock.onclose = function(e) {
+    console.log("close");
+  };
+  sock.onerror = function(e) {
+    console.log(e.data)
+  };
+  </script>
+</html>
