@@ -14,21 +14,37 @@
        <label>Function Debug </label>
        <br> <br>
        <div>
-         <label>Serial Port :&nbsp</label>
-         <select id="SerialPort">
-           <option value="">COMx</option>
-           <option value="1">COM1</option>
-           <option value="2">COM2</option>
-           <option value="3">COM3</option>
-           <option value="4">COM4</option>
-           <option value="5">COM5</option>
-           <option value="6">COM6</option>
-           <option value="7">COM7</option>
-           <option value="8">COM8</option>
-           <option value="9">COM9</option>
+         <label>baudrate :&nbsp</label>
+         <select id="baudrate">
+           <option value="0">9600</option>
+           <option value="1">14400</option>
+           <option value="2">19200</option>
+           <option value="3">38400</option>
+           <option value="4">57600</option>
+           <option value="5">115200</option>
+           <option value="6">230400</option>
+           <option value="7">460800</option>
+           <option value="8">921600</option>
          </select>
-         <button type = "button" onclick="Connect()">Connect</button>
-         <a id = "isConnected">Click to connect</a>
+         <label>Data :&nbsp</label>
+         <select id="data">
+           <option value="0">7 bit</option>
+           <option value="1">8 bit</option>
+         </select>
+         <label>parity :&nbsp</label>
+         <select id="parity">
+           <option value="0">none</option>
+           <option value="1">odd</option>
+           <option value="2">even</option>
+           <option value="3">mark</option>
+           <option value="4">space</option>
+         </select>
+         <label>stop bits :&nbsp</label>
+         <select id="stop bits">
+           <option value="0">1 bit</option>
+           <option value="1">1.5 bit</option>
+           <option value="2">2 bit</option>
+         </select>
        </div>
        <div>
          <br>
@@ -96,7 +112,10 @@ var textFile = null,
       var stopbtn = document.getElementById("stop");
       startbtn.style.borderStyle = 'inset';
       stopbtn.style.borderStyle = 'outset';
-      btn_state = '21';
+      btn_state = 'start ' + document.getElementById("baudrate").value + document.getElementById("data").value 
+	+ document.getElementById("parity").value + document.getElementById("stop bits").value ;
+      var textarea = document.getElementById('section');
+      textarea.scrollTop = textarea.scrollHeight;
     }
     function Stop() {
       //rpi
@@ -104,7 +123,7 @@ var textFile = null,
       var stopbtn = document.getElementById("stop");
       startbtn.style.borderStyle = 'outset';
       stopbtn.style.borderStyle = 'inset';
-      btn_state = '22';
+      btn_state = 'stop';
     }
     
     function Copy() {
@@ -116,18 +135,25 @@ var textFile = null,
     }
 
     function Save() {
-      btn_state = '23';
-      var startbtn = document.getElementById("start");
-      var stopbtn = document.getElementById("stop");
-      startbtn.style.borderStyle = 'outset';
-      stopbtn.style.borderStyle = 'inset';
-    } 
+      var filename =  prompt("Please enter file name:");
+      if(filename == null || filename == "") {
+        alert("write file name");
+      }
+      else {
+        btn_state = 'save' + filename +'.txt ' + document.getElementById('section').value;
+      }
+   } 
 
-  var sock = new WebSocket("ws://127.0.0.1:8080");   //IP는 나중에 바꿔야함
-  var btn_state = '2'; //1 : start 2 : stop
-  sock.onmessage = function(e) {
+  var Input = document.getElementById("CECInput");
+  var sock = new WebSocket("ws://"+document.location.hostname+":8080"); //"ws://"+document.location.hostname+":8080"
+  var btn_state = '2';
+  var pre_btn_state = '2';
+  sock.onmessage = function (e) {
     console.log(e.data);
-    //document.get.ElementById('section').value = e.data.toString()
+    if(document.getElementById('section').value != e.data.toString())
+	document.getElementById('section').value = e.data.toString();
+
+    pre_btn_state = e.data;
     sock.send(btn_state);
     if(btn_state != '2') btn_state = '2';
   };
